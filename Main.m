@@ -62,7 +62,7 @@ alpha = ret - beta.*repmat(spxRet, size(universe,1), 1);
 % 		picks = find(sum(alpha(:,i-freq+1:i-2),2) < 0 & sum(alpha(:,i-2:i-1),2) > 0, 10, 'first');
 % 		picks = find(pClose(:,i-10) < pClose(:,i-(freq*2)+1) & pClose(i-1) > pClose(i-10));
 % 		picks = find(all(alpha(:,i-7:i-1) > 0, 2));
-picks = find(all(alpha(:,i-6:i-2) < 0,2) & alpha(:,i-1) > 0);
+picks = find(all(alpha(:,end-6:end-2) < 0,2) & alpha(:,end-1) > 0);
 % 		picks = find(all(beta(:,i-7:i-1) > 0.6 & beta(:,i-7:i-1) < 0.8, 2));
 % 		picks = find(all(alpha(:,i-5:i-1)>0,2));
 % 		picks = find(all((pClose(:,i-5:i-1)-pClose(:,i-6:i-2))>0,2));
@@ -78,3 +78,5 @@ for i = 1:length(picks)
 	fprintf('\t%s\n', universe{i});
 end
 
+idx = qty(:,end-1) ~= 0;
+fprintf('The following tickers should be exited today:\n');

@@ -3,12 +3,15 @@
 universe = strtrim(universe(:,1));
 
 buffer = 1e3;
-startingCash = 1e6;
-freq = 20;
+startingCash = 2e4;
+maxExp = 1e3;
+freq = 60;
+maxTickers = 50;
 
-costPerTrade = 6.95;
-% costPerShare = 0.005;
-% costMin = 1;
+% costPerTrade = 6.95;
+costPerShare = 0.005;
+costMin = 1;
+costMaxPerc = 0.005;
 
 %% Get returns
 dates = getLastBusinessDates({'IBM'}, 400, today-1, 0);
@@ -23,6 +26,7 @@ spxClose = XFLDownload({'^SPX'}, 'IQ_CLOSEPRICE', dates);
 tmp = [zeros(size(pClose,1), 1) pClose(:,1:end-1)];
 ret = (pClose - tmp) ./ tmp;
 ret(:,1) = 0;
+ret(isnan(ret)) = 0;
 
 tmp = [0 spxClose(1:end-1)];
 spxRet = (spxClose - tmp) ./ tmp;
@@ -51,6 +55,8 @@ for i = freq:length(dates)
 	% Pick out investable stocks
 	if mod(i,freq) == 0
  		picks = find(pClose(:,i-1) < 0.05);
+		r = round(randbetween(maxTickers, 1, length(picks)));
+		picks = picks(r);
 	else
 		% Remove tickers that have risen enough
 		qty(:,i) = qty(:,i-1);
@@ -80,7 +86,9 @@ for i = freq:length(dates)
 		fprintf(2, 'Ran out of money on %s\n', datestr(dates(i)));
 		break
 	end
-	exp(picks,i) = (cash - buffer) ./ length(picks);
+	tmp = (cash - buffer) ./ length(picks);
+	tmp = min(tmp, maxExp);
+	exp(picks,i) = tmp;
 	qty(:,i) = round(exp(:,i) ./ pClose(:,i-1));
 	qty(isnan(qty)) = 0;
 	
@@ -99,7 +107,11 @@ for i = freq:length(dates)
 	
 	numTrades(i) = sum(qty(:,i) ~= qty(:,i-1));
 	
-	comm(picks,i) = costPerTrade;
+	tmp = qty(picks,i) .* costPerShare;
+	tmp(tmp < costMin) = costMin;
+	maxCost = costMaxPerc .* exp(picks,i);
+	tmp(tmp > maxCost) = maxCost;
+	comm(picks,i) = tmp;
 	
 	cash = cash - sum(comm(:,i));
 	
@@ -132,6 +144,10 @@ for i = freq:length(dates)
 end
 %% Calculate returns
 fprintf('Backtest results: %s to %s\n', datestr(dates(1)), datestr(dates(end)));
+fprintf('Starting cash: %s\n', util.Disp.AsDollars(startingCash));
+fprintf('Max daily positions: %2.0f\n', maxTickers);
+
+fprintf('\nAverage positive/negative universe return: %2.2f%%/%2.2f%%\n', 100*nanmean(ret(ret>0)), 100*nanmean(ret(ret<0)));
 dollarRet = exp .* ret;
 
 sharesTraded = diff(exp,1,2);
@@ -168,10 +184,10 @@ fprintf('Dollar return per day: %s\n', util.Disp.AsDollars(sum(dailyRet)/sum(dai
 
 fprintf('\n')
 
-plot(dates,cumsum(dailyRet))
-datetick
-util.Plot.FormatPlot(gcf)
-
-plot(dates,nansum(exp))
-datetick
-util.Plot.FormatPlot(gcf)
+% plot(dates,cumsum(dailyRet))
+% datetick
+% util.Plot.FormatPlot(gcf)
+% 
+% plot(dates,nansum(exp))
+% datetick
+% util.Plot.FormatPlot(gcf)
