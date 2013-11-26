@@ -1,4 +1,4 @@
-for k = 1:1000
+for k = 1:100
 	%% Run simulation
 	cash = startingCash;
 	qty = zeros(size(ret));
@@ -116,6 +116,8 @@ fprintf('\nAverage positive/negative universe return: %2.2f%%/%2.2f%%\n', 100*na
 fprintf('\nAverage total return over whole period: %s\n', util.Disp.AsDollars(nanmean(nansum(montecarlo,2))));
 
 fprintf('Average dollar return per day: %s\n', util.Disp.AsDollars(nanmean(nanmean(montecarlo,1))));
+
+fprintf('Number of simulations with negative returns: %2.0f out of %2.0f\n', sum(sum(montecarlo,2)<0), size(montecarlo,1));
 
 fprintf('\n')
 

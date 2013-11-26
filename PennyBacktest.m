@@ -6,7 +6,7 @@ buffer = 1e3;
 startingCash = 2e4;
 maxExp = 1e3;
 freq = 60;
-maxTickers = 50;
+maxTickers = 25;
 
 % costPerTrade = 6.95;
 costPerShare = 0.005;
@@ -14,7 +14,7 @@ costMin = 1;
 costMaxPerc = 0.005;
 
 %% Get returns
-dates = getLastBusinessDates({'IBM'}, 400, today-1, 0);
+dates = getLastBusinessDates({'IBM'}, 1000, today-1, 0);
 
 pClose = nan(size(universe,1), size(dates,2));
 
@@ -115,31 +115,31 @@ for i = freq:length(dates)
 	
 	cash = cash - sum(comm(:,i));
 	
-	if todaysExp > buffer
-		adjust = false;
-		while cash < buffer
-			% Rebalance down
-			adjust = true;
-			tmp = floor(qty(:,i) .* 0.95);
-			exp1 = nansum(qty(:,i) .* pClose(:,i-1));
-			exp2 = nansum(tmp .* pClose(:,i-1));
-			cash = cash + (exp1-exp2);
-			qty(:,i) = tmp;
-			
-			todaysExp = nansum(qty(:,i) .* pClose(:,i-1));
-		end
-		
-		while cash > buffer && ~adjust
-			% Rebalance up
-			tmp = ceil(qty(:,i) .* 1.05);
-			exp1 = nansum(qty(:,i) .* pClose(:,i-1));
-			exp2 = nansum(tmp .* pClose(:,i-1));
-			cash = cash - (exp2-exp1);
-			qty(:,i) = tmp;
-			
-			todaysExp = sum(qty(:,i) .* pClose(:,i-1));
-		end
-	end
+% 	if todaysExp > buffer
+% 		adjust = false;
+% 		while cash < buffer
+% 			% Rebalance down
+% 			adjust = true;
+% 			tmp = floor(qty(:,i) .* 0.95);
+% 			exp1 = nansum(qty(:,i) .* pClose(:,i-1));
+% 			exp2 = nansum(tmp .* pClose(:,i-1));
+% 			cash = cash + (exp1-exp2);
+% 			qty(:,i) = tmp;
+% 			
+% 			todaysExp = nansum(qty(:,i) .* pClose(:,i-1));
+% 		end
+% 		
+% 		while cash > buffer && ~adjust
+% 			% Rebalance up
+% 			tmp = ceil(qty(:,i) .* 1.05);
+% 			exp1 = nansum(qty(:,i) .* pClose(:,i-1));
+% 			exp2 = nansum(tmp .* pClose(:,i-1));
+% 			cash = cash - (exp2-exp1);
+% 			qty(:,i) = tmp;
+% 			
+% 			todaysExp = sum(qty(:,i) .* pClose(:,i-1));
+% 		end
+% 	end
 	
 end
 %% Calculate returns
